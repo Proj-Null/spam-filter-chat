@@ -23,7 +23,7 @@ class ChatList extends Component
     #[On('echo-private:chat-channel.{authId},MessageSendEvent')]
     public function listenForMessage($event)
     {
-        \Log::info('MessageSendEvent received in ChatList:', $event);
+        // \Log::info('MessageSendEvent received in ChatList:', $event);
         $this->loadConversations();
         $this->dispatch('new-message-received');
     }
