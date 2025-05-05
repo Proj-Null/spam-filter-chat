@@ -13,6 +13,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         //
+        $middleware->alias([
+            'authorize.conversation' => \App\Http\Middleware\AuthorizeConversation::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

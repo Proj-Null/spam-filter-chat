@@ -17,7 +17,6 @@ return new class extends Migration
             $table->foreign('sender_id')->references('id')->on('users');
             $table->unsignedBigInteger('receiver_id');// or uuid()
             $table->foreign('receiver_id')->references('id')->on('users');
-            $table->softDeletes();
             $table->timestamps();
         });
     }

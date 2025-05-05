@@ -14,6 +14,8 @@ Route::view('profile', 'profile')
 require __DIR__.'/auth.php';
 Route::middleware('auth')->group(function (){
 Route::get('/chat',Index::class)->name('chat.index');
-Route::get('/chat/{query}',Chat::class)->name('chat');
 Route::get('/dashboard',Users::class)->name('dashboard');
 });
+Route::get('/chat/{query}', Chat::class)
+    ->name('chat')
+    ->middleware(['auth', 'authorize.conversation']);
