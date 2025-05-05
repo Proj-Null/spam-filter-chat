@@ -46,9 +46,7 @@ class ChatBox extends Component
             'body' => $this->body,
             'is_spam'=>$isSpam
         ]);
-        // if($this->authId!=$this->selectedConversation->sender_id||$this->authId!=$this->selectedConversation->receiver_id){
 
-        // }else{
             broadcast(new MessageSendEvent($createdMessage))->toOthers();
             $this->reset('body');
             $this->js(<<<'JS'
@@ -57,13 +55,11 @@ class ChatBox extends Component
             $this->loadedMessages->push($createdMessage);
             $this->selectedConversation->updated_at = now();
             $this->selectedConversation->save();
-        // }
     }
 
     #[On('echo-private:chat-channel.{authId},MessageSendEvent')]
     public function listenForMessage($event)
     {
-        // \Log::info('Event received:', $event); // Debug the event
         $message = Message::find($event['message']['id']);
         if ($message && $message->conversation_id === $this->selectedConversation->id) {
             $this->loadedMessages->push($message);
