@@ -122,5 +122,7 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+    'enron_data_path' => env('ENRON_DATA_PATH', storage_path('app/data/enron1')),
 
 ];
+

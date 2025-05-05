@@ -7,6 +7,8 @@ use Livewire\Component;
 use Livewire\Attributes\On;
 use App\Events\MessageSendEvent;
 use Illuminate\Support\Collection;
+use App\Http\Controllers\ChatController;
+
 
 class ChatBox extends Component
 {
@@ -14,6 +16,7 @@ class ChatBox extends Component
     public $body;
     public $loadedMessages;
     public $authId;
+    protected NaiveBayes $classifier;
 
 
     public function loadMessages()
@@ -35,12 +38,13 @@ class ChatBox extends Component
     public function sendMessage()
     {
         $this->validate(['body' => 'required|string']);
+        $isSpam = ChatController::predictSpam($this->body);
         $createdMessage = Message::create([
             'conversation_id' => $this->selectedConversation->id,
             'sender_id' => auth()->id(),
             'receiver_id' => $this->selectedConversation->getReceiver()->id,
-            'body' => $this->body
-
+            'body' => $this->body,
+            'is_spam'=>$isSpam
         ]);
         broadcast(new MessageSendEvent($createdMessage))->toOthers();
         $this->reset('body');
@@ -70,9 +74,10 @@ class ChatBox extends Component
     public function mount()
     {
         $this->loadMessages();
-        $this->authId=auth()->id();
- 
+        $this->authId = auth()->id();
     }
+    
+
     public function render()
     {
         return view('livewire.chat.chat-box');
