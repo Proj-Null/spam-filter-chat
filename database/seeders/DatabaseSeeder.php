@@ -47,36 +47,5 @@ class DatabaseSeeder extends Seeder
             'email' => 'Test5@ujwalp.com.np',
             'password' => Hash::make('password')
         ]);
-
-        // Create conversations
-        $users = User::all();
-
-        foreach ($users as $i => $sender) {
-            for ($j = $i + 1; $j < $users->count(); $j++) {
-                $receiver = $users[$j];
-
-                $conversation = Conversation::create([
-                    'sender_id' => $sender->id,
-                    'receiver_id' => $receiver->id,
-                ]);
-
-                // Add 10 messages from each user
-                for ($k = 0; $k < 10; $k++) {
-                    Message::create([
-                        'conversation_id' => $conversation->id,
-                        'sender_id' => $sender->id,
-                        'receiver_id' => $receiver->id,
-                        'body' => fake()->sentence(),
-                    ]);
-
-                    Message::create([
-                        'conversation_id' => $conversation->id,
-                        'sender_id' => $receiver->id,
-                        'receiver_id' => $sender->id,
-                        'body' => fake()->sentence(),
-                    ]);
-                }
-            }
-        }
     }
 }
