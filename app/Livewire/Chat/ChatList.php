@@ -15,6 +15,7 @@ class ChatList extends Component
     public $authId;
     public $conversations;
     public $mark=false;
+    //for unread count.
     public function loadConversations()
     {
         $user = auth()->user();

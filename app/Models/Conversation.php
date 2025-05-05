@@ -48,6 +48,7 @@ class Conversation extends Model
     }
     public function getOrMarkUnreadMessages($markAsRead = false): int
     {
+        //Because i want this function to return a count only if the selected conversation is not the one listening to the event, rest is setup in the chatlist Livewire component.
         if ($markAsRead) {
             Message::where('conversation_id', $this->id)
                 ->where('receiver_id', auth()->id())

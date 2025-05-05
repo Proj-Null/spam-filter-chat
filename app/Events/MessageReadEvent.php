@@ -39,5 +39,4 @@ class MessageReadEvent implements shouldBroadcastNow
             new PrivateChannel('chat-channel.' . $this->message->sender_id),
         ];
     }
-    
 }
