@@ -6,6 +6,7 @@ use App\Models\Message;
 use Livewire\Component;
 use Livewire\Attributes\On;
 use App\Events\MessageSendEvent;
+use App\Events\MessageReadEvent;
 use Illuminate\Support\Collection;
 use App\Http\Controllers\ChatController;
 
@@ -16,7 +17,7 @@ class ChatBox extends Component
     public $body;
     public $loadedMessages;
     public $authId;
-    protected NaiveBayes $classifier;
+    protected $listeners = ['refreshComponent' => '$refresh'];
 
 
     public function loadMessages()
@@ -66,8 +67,23 @@ class ChatBox extends Component
             $this->js(<<<'JS'
                 window.dispatchEvent(new CustomEvent('scroll-bottom'));
             JS);
+            $message->read_at=now();
+            $message->save();
+            broadcast(new MessageReadEvent($message))->toOthers();
         }
     }
+
+    #[On('echo-private:chat-channel.{authId},MessageReadEvent')]
+    public function listenRead($event)
+    {
+        // dd($event);
+        // $this->emit('refreshComponent');
+        $this->js(<<<'JS'
+    window.dispatchEvent(new CustomEvent('mark-read'));
+JS);
+
+    }
+    
 
     public function mount()
     {

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Services\SpamPredictionService;
 use Illuminate\Database\Eloquent\Model;
 
 class Message extends Model
@@ -24,9 +23,6 @@ class Message extends Model
         'is_spam' => 'boolean'
     ];
 
-
-    /* relationship */
-
     public function conversation()
     {
         return $this->belongsTo(Conversation::class);
@@ -39,12 +35,6 @@ class Message extends Model
     public function receiver()
     {
         return $this->belongsTo(User::class, 'receiver_id');
-    }
-    public function isLikelySpam(): bool
-    {
-        $predictionService = new SpamPredictionService();
-        $prediction = $predictionService->getPrediction($this->id);
-        return $prediction ? $prediction['is_spam'] : false;
     }
 
     public function isRead():bool
