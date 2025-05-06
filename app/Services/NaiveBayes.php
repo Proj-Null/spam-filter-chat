@@ -558,4 +558,7 @@ class NaiveBayes
      {
          return $this->isTrained;
      }
+     public function storeModel(){
+        $this->saveTrainedClassifier();
+     }
 }

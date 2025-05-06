@@ -52,7 +52,7 @@ class ChatBox extends Component
             return redirect(request()->header('Referer'));//reload after editing, which was the easiest way to update
             $this->editingMessageId = null;
         } else {
-            $isSpam = ChatController::predictSpam($this->body);
+            $isSpam = ChatController::predictSpam($this->body,0.5);
     
             $createdMessage = Message::create([
                 'conversation_id' => $this->selectedConversation->id,
@@ -80,17 +80,23 @@ class ChatBox extends Component
         //reload the page so the message is no longer visible
         return redirect(request()->header('Referer'));
     }
+
     public function editMessage($messageId)
     {
         $message = Message::findOrFail($messageId);
-    
-        // Optional: authorization check
-        if ($message->sender_id !== auth()->id()) {
-            abort(403);
-        }
-    
         $this->body = $message->body;
         $this->editingMessageId = $message->id;
+    }
+    public function reportMessage($messageId){
+        $checkAgain=Message::findOrFail($messageId);
+
+        // dd($checkAgain->body);
+        $isSpam = ChatController::predictSpam($checkAgain->body,0.35);//check again with a lowered threshold
+        if($isSpam){
+            ChatController::addSpamMessage($checkAgain->body);
+        }
+        return redirect(request()->header('Referer'));
+
     }
     
 

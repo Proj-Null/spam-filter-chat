@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\NaiveBayes;
+use App\Services\TrainingMessage;
 
 class ChatController extends Controller
 {
@@ -19,9 +20,15 @@ class ChatController extends Controller
     }
 
     // Static method to predict spam
-    public static function predictSpam($text): bool
+    public static function predictSpam($text,$thres): bool
     {
         $classifier = self::getClassifier();
-        return $classifier->predict($text)>0.5;
+        return $classifier->predict($text)>$thres;
+    }
+    public static function addSpamMessage($text){
+        $classifier = self::getClassifier();
+        $newSpam=new TrainingMessage($text,true);
+        $this->classifier->train($newSpam);
+        $this->classifier->storeModel();
     }
 }
