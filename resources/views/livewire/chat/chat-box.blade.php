@@ -67,77 +67,102 @@ class="w-full overflow-hidden">
         @class([
             'max-w-[85%] md:max-w-[78%] flex w-auto gap-2 relative mt-2',
             'ml-auto'=>$message->sender_id=== auth()->id(),
-                ]) >
-
+        ]) >
+    
         <div @class([
-                    'shrink-0',
-                    'invisible'=>$previousMessage?->sender_id==$message->sender_id,
-                    'hidden'=>$message->sender_id === auth()->id()
-                        ])>
-
+            'shrink-0',
+            'invisible'=>$previousMessage?->sender_id==$message->sender_id,
+            'hidden'=>$message->sender_id === auth()->id()
+        ])>
             <x-avatar />
         </div>
-            <div @class(['flex flex-wrap text-[15px] rounded-xl p-2.5 flex flex-col text-black bg-[#f6f6f8fb]',
-             'rounded-bl-none border border-gray-200/40' => !($message->sender_id === auth()->id()),
-             'rounded-br-none bg-blue-500/80 text-white' => $message->sender_id === auth()->id()
-           ])>
-    <p class="whitespace-normal truncate text-sm md:text-base tracking-wide lg:tracking-normal">
-        {{$message->body}}
-    </p>
-
-    @if($message->sender_id != auth()->id() && $message->is_spam)
-    <div class="flex items-center mt-1 text-xs italic">
-        <small class="text-gray-900">
-            This message has been flagged as potential spam
-        </small>
-    </div>
-    @endif
-
-    <div class="ml-auto flex gap-2">
-        <p @class([
-            'text-xs',
-            'text-gray-500' => !($message->sender_id === auth()->id()),
-            'text-white' => $message->sender_id === auth()->id(),
+    
+        <div @class([
+            'flex flex-wrap text-[15px] rounded-xl p-2.5 flex flex-col text-black bg-[#f6f6f8fb]',
+            'rounded-bl-none border border-gray-200/40' => !($message->sender_id === auth()->id()),
+            'rounded-br-none bg-blue-500/80 text-white' => $message->sender_id === auth()->id()
         ])>
-            {{$message->created_at->format('g:i a')}}
-        </p>
-        {{-- @if ($message->sender_id=== auth()->id())
-                    @if($message->read_at!=null)
-                        <span @class('text-gray-200')>
+            <div class="flex justify-between items-start gap-2">
+                <p class="whitespace-normal truncate text-sm md:text-base tracking-wide lg:tracking-normal flex-grow">
+                    {{$message->body}}
+                </p>
+                
+                <!-- Three dots dropdown -->
+                <div class="relative" x-data="{ open: false }">
+                    <button @click="open = !open" class="p-1 rounded-full hover:bg-gray-200/50">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" 
+                             class="bi bi-three-dots-vertical" viewBox="0 0 16 16"
+                             :class="{ 'text-white': {{ $message->sender_id === auth()->id() ? 'true' : 'false' }} }">
+                            <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+                        </svg>
+                    </button>
+                    
+                    <div x-show="open" 
+                         @click.away="open = false"
+                         x-transition:enter="transition ease-out duration-100"
+                         x-transition:enter-start="transform opacity-0 scale-95"
+                         x-transition:enter-end="transform opacity-100 scale-100"
+                         x-transition:leave="transition ease-in duration-75"
+                         x-transition:leave-start="transform opacity-100 scale-100"
+                         x-transition:leave-end="transform opacity-0 scale-95"
+                         class="absolute z-10 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+                         :class="{ 'right-0': {{ $message->sender_id === auth()->id() ? 'true' : 'false' }}, 'left-0': {{ $message->sender_id !== auth()->id() ? 'true' : 'false' }} }">
+                        <div class="py-1" role="menu" aria-orientation="vertical">
+                            @if($message->sender_id === auth()->id())
+                                <button wire:click="deleteMessage({{ $message->id }})" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left" role="menuitem">
+                                    Delete Message
+                                </button>
+                                <button wire:click="editMessage({{ $message->id }})" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left" role="menuitem">
+                                    Edit Message
+                                </button>
+                            @else
+                                <button wire:click="reportMessage({{ $message->id }})" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left" role="menuitem">
+                                    {{ $message->is_spam ? 'Unmark as Spam' : 'Report as Spam' }}
+                                </button>
+                                <button wire:click="blockUser({{ $message->sender_id }})" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left" role="menuitem">
+                                    Block User
+                                </button>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            @if($message->sender_id != auth()->id() && $message->is_spam)
+                <div class="flex items-center mt-1 text-xs italic">
+                    <small class="text-gray-900">
+                        This message has been flagged as potential spam
+                    </small>
+                </div>
+            @endif
+            
+            <div class="ml-auto flex gap-2">
+                <p @class([
+                    'text-xs',
+                    'text-gray-500' => !($message->sender_id === auth()->id()),
+                    'text-white' => $message->sender_id === auth()->id(),
+                ])>
+                    {{$message->created_at->format('g:i a')}}
+                </p>
+                @if ($message->sender_id === auth()->id())
+                    <span x-data="{ read: @js($message->read_at !== null) }"
+                        x-init="window.addEventListener('mark-read', () => { read = true })">
+                        <template x-if="read">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check2-all" viewBox="0 0 16 16">
                                 <path d="M12.354 4.354a.5.5 0 0 0-.708-.708L5 10.293 1.854 7.146a.5.5 0 1 0-.708.708l3.5 3.5a.5.5 0 0 0 .708 0l7-7zm-4.208 7-.896-.897.707-.707.543.543 6.646-6.647a.5.5 0 0 1 .708.708l-7 7a.5.5 0 0 1-.708 0z"/>
                                 <path d="m5.354 7.146.896.897-.707.707-.897-.896a.5.5 0 1 1 .708-.708z"/>
                             </svg>
-                        </span>
-                        @else
-                        <span @class('text-gray-200')>
+                        </template>
+                        <template x-if="!read">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check2" viewBox="0 0 16 16">
                                 <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
                             </svg>
-                        </span>
-                        @endif
-                @endif --}}
-                @if ($message->sender_id === auth()->id())
-                <span x-data="{ read: @js($message->read_at !== null) }"
-                    x-init="window.addEventListener('mark-read', () => { read = true })">
-                  <template x-if="read">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check2-all" viewBox="0 0 16 16">
-                        <path d="M12.354 4.354a.5.5 0 0 0-.708-.708L5 10.293 1.854 7.146a.5.5 0 1 0-.708.708l3.5 3.5a.5.5 0 0 0 .708 0l7-7zm-4.208 7-.896-.897.707-.707.543.543 6.646-6.647a.5.5 0 0 1 .708.708l-7 7a.5.5 0 0 1-.708 0z"/>
-                        <path d="m5.354 7.146.896.897-.707.707-.897-.896a.5.5 0 1 1 .708-.708z"/>
-                    </svg>
-                </template>
-                  <template x-if="!read">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check2" viewBox="0 0 16 16">
-                        <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/>
-                    </svg>
-                </template>
-              </span>
-              
-@endif
-
-    </div>
-</div>
+                        </template>
+                    </span>   
+                @endif
+            </div>
         </div>
+    </div>
         
         @endforeach
         @endif

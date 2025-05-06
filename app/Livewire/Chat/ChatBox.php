@@ -17,7 +17,8 @@ class ChatBox extends Component
     public $body;
     public $loadedMessages;
     public $authId;
-    protected $listeners = ['refreshComponent' => '$refresh'];
+    public $editingMessageId = null;
+
 
 
     public function loadMessages()
@@ -39,24 +40,59 @@ class ChatBox extends Component
     public function sendMessage()
     {
         $this->validate(['body' => 'required|string']);
-        $isSpam = ChatController::predictSpam($this->body);
-        $createdMessage = Message::create([
-            'conversation_id' => $this->selectedConversation->id,
-            'sender_id' => auth()->id(),
-            'receiver_id' => $this->selectedConversation->getReceiver()->id,
-            'body' => $this->body,
-            'is_spam'=>$isSpam
-        ]);
-
+    
+        if ($this->editingMessageId) {
+            $message = Message::findOrFail($this->editingMessageId);
+    
+            if ($message->sender_id !== auth()->id()) {
+                abort(403);
+            }
+    
+            $message->update(['body' => $this->body]);
+            return redirect(request()->header('Referer'));//reload after editing, which was the easiest way to update
+            $this->editingMessageId = null;
+        } else {
+            $isSpam = ChatController::predictSpam($this->body);
+    
+            $createdMessage = Message::create([
+                'conversation_id' => $this->selectedConversation->id,
+                'sender_id' => auth()->id(),
+                'receiver_id' => $this->selectedConversation->getReceiver()->id,
+                'body' => $this->body,
+                'is_spam' => $isSpam
+            ]);
+    
             broadcast(new MessageSendEvent($createdMessage))->toOthers();
-            $this->reset('body');
-            $this->js(<<<'JS'
-            window.dispatchEvent(new CustomEvent('scroll-bottom'));
-            JS);
             $this->loadedMessages->push($createdMessage);
             $this->selectedConversation->updated_at = now();
             $this->selectedConversation->save();
+        }
+    
+        $this->reset('body', 'editingMessageId');
+    
+        $this->js(<<<'JS'
+            window.dispatchEvent(new CustomEvent('scroll-bottom'));
+        JS);
     }
+    
+    public function deleteMessage($messageId){
+        Message::findOrFail($messageId)->delete();
+        //reload the page so the message is no longer visible
+        return redirect(request()->header('Referer'));
+    }
+    public function editMessage($messageId)
+    {
+        $message = Message::findOrFail($messageId);
+    
+        // Optional: authorization check
+        if ($message->sender_id !== auth()->id()) {
+            abort(403);
+        }
+    
+        $this->body = $message->body;
+        $this->editingMessageId = $message->id;
+    }
+    
 
     #[On('echo-private:chat-channel.{authId},MessageSendEvent')]
     public function listenForMessage($event)
