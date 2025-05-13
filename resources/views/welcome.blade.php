@@ -47,11 +47,11 @@
                            
                             @if (Route::has('login'))
                                 @auth
-                                    <a href="{{ url('/dashboard') }}" class="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700">
+                                    <a href="{{ url('/dashboard') }}" class="inline-block px-6 py-3 bg-gray-800 text-white font-medium rounded-md hover:bg-gray-700">
                                         Go to Dashboard
                                     </a>
                                 @else
-                                    <a href="{{ route('login') }}" class="inline-block px-6 py-3 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700">
+                                    <a href="{{ route('login') }}" class="inline-block px-6 py-3 bg-gray-800 text-white font-medium rounded-md hover:bg-gray-700">
                                         Sign In
                                     </a>
                                     @if (Route::has('register'))
