@@ -18,8 +18,21 @@ class ChatBox extends Component
     public $loadedMessages;
     public $authId;
     public $editingMessageId = null;
+    public $hasUnreadMessages=false;
 
-
+    // Helper method to update unread message status
+    public function updateUnreadStatus()
+    {
+        $user = auth()->user();
+        $convos = $user->conversations()->get();
+        $this->hasUnreadMessages = false;
+        foreach ($convos as $convo) {
+            if ($convo->getOrMarkUnreadMessages() > 0) {
+                $this->hasUnreadMessages = true;
+                break;
+            }
+        }
+    }
 
     public function loadMessages()
     {
@@ -104,6 +117,7 @@ class ChatBox extends Component
     public function listenForMessage($event)
     {
         $message = Message::find($event['message']['id']);
+        $this->updateUnreadStatus();
         if ($message && $message->conversation_id === $this->selectedConversation->id) {
             $this->loadedMessages->push($message);
             $this->js(<<<'JS'
@@ -113,13 +127,12 @@ class ChatBox extends Component
             $message->save();
             broadcast(new MessageReadEvent($message))->toOthers();
         }
+
     }
 
     #[On('echo-private:chat-channel.{authId},MessageReadEvent')]
     public function listenRead($event)
     {
-        // dd($event);
-        // $this->emit('refreshComponent');
         $this->js(<<<'JS'
     window.dispatchEvent(new CustomEvent('mark-read'));
 JS);
@@ -131,6 +144,8 @@ JS);
     {
         $this->loadMessages();
         $this->authId = auth()->id();
+        $this->updateUnreadStatus();
+
     }
     
 

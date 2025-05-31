@@ -26,15 +26,9 @@ class ChatList extends Component
     {
         $this->loadConversations();
         $message = Message::find($event['message']['id']);
-        if ($message && $message->conversation_id === $this->selectedConversation->id) {
+        if ($message && $message->conversation_id === $this->selectedConversation?->id) {
             $this->mark=true;
         }
-    }
-    #[On('echo-private:chat-channel.{authId},MessageReadEvent')]
-    public function listenRead($event)
-    {
-
-
     }
     public function mount()
     {
