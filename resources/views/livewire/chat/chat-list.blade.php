@@ -68,9 +68,9 @@
                               @endif
                          </div>
                      </a>
-                     <div class="col-span-1 flex flex-col text-center my-auto">
+                     {{-- <div class="col-span-1 flex flex-col text-center my-auto">
                          <div class="w-6 h-6 opacity-0">.</div>
-                     </div>
+                     </div> --}}
                  </aside>
              </li>
 
